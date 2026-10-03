@@ -20,7 +20,7 @@ rollen/ orgeinheiten/ begriffe/ systeme/
                         Concepts, ein flacher Ordner je Typ; Pfad ohne .md = ID
 archiv/                 Rohquellen, keine Concepts
 tools/                  Validator und Lint (TypeScript), Tests unter tools/tests/
-.github/workflows/      validate.yml (jeder PR), lint.yml (manuell, später wöchentlich)
+.github/workflows/      validate.yml (jeder PR), lint.yml (wöchentlich und manuell)
 ```
 
 Validator und Lint kennen keinen einzigen Typ- oder Feldnamen. Alles kommt aus `schema/taxonomie.yaml`. Ein anderer Mandant oder ein Projektraum mit lockeren Regeln ändert die Config, nicht den Code. Gates und Turnusse stehen dafür in einem Profil-Block (`profile.org-kb`), ein zweites Profil ist ein weiterer Block.
@@ -77,7 +77,11 @@ Befunde sind keine CI-Fehler. Der Lauf schreibt `lint-report.md` (in Actions als
 
 **Erledigte Befunde schließt ein Mensch.** Der Lint nennt offene Lint-Issues ohne aktuellen Befund, schließt sie aber nicht. Kuratieren ist am Anfang genau die Arbeit, die Vertrauen ins System aufbaut.
 
-Der Workflow `lint.yml` läuft derzeit nur manuell (Actions → Lint → Run workflow, Schalter „Issues anlegen“). Der wöchentliche Lauf mit Issues wird nach der Abnahme eingeschaltet.
+Der Workflow `lint.yml` läuft jeden Montag um 06:00 UTC und legt dabei Issues an. Von Hand startest du ihn unter Actions → Lint → Run workflow, dort mit dem Schalter für Issues (Default aus).
+
+## Stand
+
+Meilenstein M0 ist abgenommen, Nachweise in [docs/ABNAHME.md](docs/ABNAHME.md).
 
 ## Gates: vorbereitet und erzwungen
 

@@ -9,12 +9,11 @@
 name: Lint
 
 on:
-  # Zeitplan bis nach der Abnahme (Schritt 6) ausgesetzt: Der erste Lauf mit
-  # Issues wird gemeinsam von Hand ausgelöst (Entscheidung Rico, 03.10.2026).
-  # Danach wieder einschalten:
-  # schedule:
-  #   # montags 06:00 UTC
-  #   - cron: "0 6 * * 1"
+  # Nach der Abnahme M0 wieder eingeschaltet (docs/ABNAHME.md). Der erste
+  # Lauf mit Issues wurde gemeinsam von Hand ausgelöst.
+  schedule:
+    # montags 06:00 UTC
+    - cron: "0 6 * * 1"
   workflow_dispatch:
     inputs:
       issues:
