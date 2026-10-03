@@ -11,6 +11,10 @@ import { validateKorpus } from "../lib/validate.ts";
 const ROOT = resolve(import.meta.dirname, "../..");
 const schema = ladeSchema(join(ROOT, "schema/taxonomie.yaml"));
 const STICHTAG = "2026-10-01";
+// Eingefrorener Seed-Stand (Ausgangscommit). Der lebende Korpus im Repo-Root
+// ändert sich mit jedem Concept-PR und wird von "npm run validate" geprüft,
+// nicht von den Tests.
+const SEED = join(import.meta.dirname, "fixtures/seed");
 
 // Pflichtfelder je Typ, damit jedes Test-Concept den Validator passiert
 const TYP_DEFAULTS: Record<string, Record<string, unknown>> = {
@@ -183,8 +187,8 @@ describe("Signale: abgelaufen (Fälle B1 bis B5 aus docs/PLAN.md)", () => {
   });
 });
 
-describe("Seed-Korpus (Repo-Root)", () => {
-  const { korpus } = validateKorpus(ladeDokumente(ROOT, schema), schema);
+describe("Seed-Korpus (eingefrorener Ausgangsstand)", () => {
+  const { korpus } = validateKorpus(ladeDokumente(SEED, schema), schema);
 
   it("findet genau die zehn fehlenden Linkziele und den Orphan ki-einsatz, sonst nichts", () => {
     const b = lintKorpus(korpus, schema, "2026-10-03");

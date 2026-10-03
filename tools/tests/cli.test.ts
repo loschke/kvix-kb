@@ -4,6 +4,11 @@ import { main } from "../validate.ts";
 
 const ROOT = resolve(import.meta.dirname, "../..");
 const FIX = join(import.meta.dirname, "fixtures");
+// Eingefrorener Seed-Stand (Ausgangscommit). Der lebende Korpus im Repo-Root
+// ändert sich mit jedem Concept-PR und wird von "npm run validate" geprüft,
+// nicht von den Tests.
+const SEED = join(import.meta.dirname, "fixtures/seed");
+const SCHEMA = join(ROOT, "schema/taxonomie.yaml");
 
 function lauf(argv: string[], env: NodeJS.ProcessEnv = {}): { code: number; out: string; err: string } {
   const out: string[] = [];
@@ -13,8 +18,8 @@ function lauf(argv: string[], env: NodeJS.ProcessEnv = {}): { code: number; out:
 }
 
 describe("validate CLI", () => {
-  it("Exit 0 auf dem Seed-Korpus, mit Hinweis auf fehlende Linkziele", () => {
-    const r = lauf(["--root", ROOT]);
+  it("Exit 0 auf dem Seed-Stand, mit Hinweis auf fehlende Linkziele", () => {
+    const r = lauf(["--root", SEED, "--schema", SCHEMA]);
     expect(r.code).toBe(0);
     expect(r.out).toContain("0 Fehler");
     expect(r.out).toContain("Fehlende Linkziele: 10 verschiedene");
@@ -33,7 +38,7 @@ describe("validate CLI", () => {
   });
 
   it("--json liefert Befunde und Korpus-Modell", () => {
-    const r = lauf(["--root", ROOT, "--json"]);
+    const r = lauf(["--root", SEED, "--schema", SCHEMA, "--json"]);
     const j = JSON.parse(r.out);
     expect(j.ok).toBe(true);
     expect(j.zusammenfassung).toMatchObject({ concepts: 8, fehler: 0, profil: "org-kb" });
@@ -43,7 +48,7 @@ describe("validate CLI", () => {
   });
 
   it("schreibt in GitHub Actions Annotationen an die Zeilen", () => {
-    const r = lauf(["--root", ROOT], { GITHUB_ACTIONS: "true" });
+    const r = lauf(["--root", SEED, "--schema", SCHEMA], { GITHUB_ACTIONS: "true" });
     expect(r.out).toContain("::warning file=systeme/ticketsystem.md,line=9,title=linkziel-fehlt::");
   });
 });

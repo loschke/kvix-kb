@@ -7,6 +7,10 @@ import { validateConcept, validateKorpus } from "../lib/validate.ts";
 
 const ROOT = resolve(import.meta.dirname, "../..");
 const FIX = join(import.meta.dirname, "fixtures");
+// Eingefrorener Seed-Stand (Ausgangscommit). Der lebende Korpus im Repo-Root
+// ändert sich mit jedem Concept-PR und wird von "npm run validate" geprüft,
+// nicht von den Tests.
+const SEED = join(import.meta.dirname, "fixtures/seed");
 const schema = ladeSchema(join(ROOT, "schema/taxonomie.yaml"));
 const gueltig = ladeDokumente(join(FIX, "gueltig"), schema);
 
@@ -115,8 +119,8 @@ describe("validateConcept (Einzelprüfung, z. B. für die Werkbank)", () => {
   });
 });
 
-describe("Seed-Korpus (Repo-Root)", () => {
-  const { befunde, korpus } = validateKorpus(ladeDokumente(ROOT, schema), schema);
+describe("Seed-Korpus (eingefrorener Ausgangsstand)", () => {
+  const { befunde, korpus } = validateKorpus(ladeDokumente(SEED, schema), schema);
 
   it("ist gültig: keine Fehler, nur Warnungen zu fehlenden Linkzielen", () => {
     expect(korpus.concepts.size).toBe(8);
@@ -161,6 +165,6 @@ describe("andere Taxonomie (kein hartkodierter Typ)", () => {
   });
 
   it("lädt keine Kvix-Ordner, wenn die Taxonomie sie nicht kennt", () => {
-    expect(ladeDokumente(ROOT, anderes)).toEqual([]);
+    expect(ladeDokumente(SEED, anderes)).toEqual([]);
   });
 });
