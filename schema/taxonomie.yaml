@@ -298,8 +298,8 @@ profile:
       G3:
         beschreibung: "Einzel-PR, Owner und Vier-Augen"
         # Vom Validator erzwungen (Entscheidung F5): Concept braucht
-        # mindestens eine Quelle.
-        quelle_pflicht: true
+        # mindestens einen Eintrag in diesen Feldern, also eine Quelle.
+        mindestens_eins: [quellen]
         # Abgelaufene Gültigkeit blockiert im Prototyp nicht die CI, sondern
         # ist ein Lint-Befund (Entscheidung F5). Vorbereitet, nicht erzwungen.
 
