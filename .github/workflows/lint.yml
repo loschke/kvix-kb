@@ -1,0 +1,67 @@
+# Lint-Lauf: wöchentlich und manuell.
+#
+# Der Report landet als Artefakt (lint-report.md) und in der Zusammenfassung
+# des Laufs. Befunde sind keine Fehler, der Lauf bleibt grün.
+#
+# Issues (Entscheidung F11): Der wöchentliche Lauf legt je Befund ein Issue
+# an, ohne Duplikate. Beim manuellen Lauf per Schalter, Default aus.
+
+name: Lint
+
+on:
+  schedule:
+    # montags 06:00 UTC
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      issues:
+        description: "Je Befund ein GitHub-Issue anlegen (ohne Duplikate)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: lint
+  cancel-in-progress: false
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: Lint
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MIT_ISSUES: ${{ github.event_name == 'schedule' || inputs.issues }}
+        run: |
+          if [ "$MIT_ISSUES" = "true" ]; then
+            npm run lint -- --issues
+          else
+            npm run lint
+          fi
+
+      - name: Report in die Zusammenfassung
+        if: always()
+        run: |
+          if [ -f lint-report.md ]; then cat lint-report.md >> "$GITHUB_STEP_SUMMARY"; fi
+
+      - name: Report als Artefakt
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: lint-report
+          path: lint-report.md
+          if-no-files-found: warn
