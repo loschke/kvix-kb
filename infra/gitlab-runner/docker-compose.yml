@@ -17,7 +17,7 @@ services:
     restart: unless-stopped
     environment:
       - CI_SERVER_URL=https://vaults.sevenx.cloud
-      - CI_SERVER_TOKEN=${RUNNER_TOKEN:?RUNNER_TOKEN fehlt}
+      - CI_SERVER_TOKEN=${RUNNER_TOKEN}
     volumes:
       - runner-config:/etc/gitlab-runner
       - /var/run/docker.sock:/var/run/docker.sock

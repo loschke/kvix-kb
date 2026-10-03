@@ -10,7 +10,7 @@ Ohne Runner laufen auf GitLab keine Pipelines. Der Runner ist ein eigener Contai
 |---|---|---|
 | Art | Instance-Runner | Gilt für alle Projekte der Instanz. Das Projekt kvix-kb gibt es auf GitLab noch nicht |
 | Executor | Docker, Standard-Image `node:22` | Gleiche Laufzeit wie in GitHub Actions |
-| Gleichzeitige Jobs | 1 | Der Host trägt auch GitLab und Coolify |
+| Gleichzeitige Jobs | 1 (Standardwert des Runners, nicht gesondert gesetzt) | Der Host trägt auch GitLab und Coolify |
 | Anmeldung | Selbst beim ersten Start, aus `RUNNER_TOKEN` | Der Token liegt nur in Coolify, nie im Repo oder im Chat |
 | Konfiguration | Volume `runner-config` | Überlebt Neustarts und neue Deployments |
 
