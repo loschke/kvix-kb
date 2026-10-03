@@ -1,0 +1,34 @@
+# Testfixture: eine bewusst andere Taxonomie. Belegt, dass Validator und
+# Lint keine Typen, Felder oder Kanten aus der Kvix-Taxonomie fest kennen.
+version: 1
+ablage:
+  concept_endung: .md
+  typ_ordner_flach: true
+  archiv_praefix: quellen/
+basis_felder:
+  typ: { art: typ, pflicht: true }
+  titel: { art: text, pflicht: true }
+  phase: { art: enum, werte: [idee, laufend, beendet], pflicht: true }
+  verbindungen: { art: kanten, pflicht: true }
+  geprueft_am: { art: datum, pflicht: true }
+kanten:
+  teil_von: { ziel: [projekt] }
+typen:
+  projekt:
+    ordner: projekte
+    felder:
+      ziel: { art: text, pflicht: true }
+signale:
+  abgekuendigt:
+    werte: { phase: [beendet] }
+    propagiert_ueber: [teil_von]
+  abgelaufen:
+    feld: geprueft_am
+    nur_wenn: { phase: [laufend] }
+aktives_profil: team-raum
+profile:
+  team-raum:
+    gates:
+      T1: { beschreibung: "Ein Review reicht" }
+    typ_gate: { projekt: T1 }
+    turnus_tage: { projekt: 30 }
