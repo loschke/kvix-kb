@@ -1,6 +1,7 @@
 # kvix-kb
 Demo-Vault und Prototyp der wissen.work-Wissensbasis.
 Vollständiger Auftrag: docs/BRIEFING.md (immer zuerst lesen).
+Bauplan und Entscheidungen: docs/PLAN.md. Regeln für Concept-Änderungen: AGENTS.md.
 
 ## Regeln
 - Deutsch in Commits, Doku, Issues
