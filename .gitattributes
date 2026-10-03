@@ -1,0 +1,3 @@
+# Einheitlich LF im Arbeitsverzeichnis, auch unter Windows.
+# Validator und Lint lesen Zeilen; CRLF würde Zeilenbezüge und Frontmatter-Erkennung stören.
+* text=auto eol=lf

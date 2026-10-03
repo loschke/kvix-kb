@@ -1,8 +1,8 @@
 # kvix-kb · Bauplan M0
 
-Stand 03.10.2026 · Grundlage: `docs/BRIEFING.md` · Status: **zur Freigabe, noch nichts gebaut**
+Stand 03.10.2026 · Grundlage: `docs/BRIEFING.md` · Status: **freigegeben am 03.10.2026, Entscheidungen siehe Abschnitt 6**
 
-Dieser Plan hat vier Teile: die Vorab-Prüfung der zwei Bestandsbausteine, die Befunde am Seed-Korpus, die Bauschritte in Reihenfolge und die offenen Fragen. Die Fragen stehen am Ende, die blockierenden sind markiert.
+Dieser Plan hat vier Teile: die Vorab-Prüfung der zwei Bestandsbausteine, die Befunde am Seed-Korpus, die Bauschritte in Reihenfolge und die offenen Fragen. Die Fragen stehen am Ende, Ricos Entscheidungen dazu in Abschnitt 6. Wo Abschnitt 6 von den Schritten abweicht, gilt Abschnitt 6.
 
 ---
 
@@ -260,3 +260,33 @@ Dazu `.github/pull_request_template.md` mit den Feldern Gate, Quellen, Konflikt-
 ## 5. Was dieser Plan bewusst nicht enthält
 
 Kein UI, kein MCP-Server, kein Ingest-Agent, keine Embeddings oder RAG, keine Änderung an den acht Seed-Concepts, kein Eingriff in `mcp-hub`, `build-jetzt-superagents` oder `lernen-diy`. Die Befunde zu github-kb und das Muster-Mapping aus build.jetzt sind Input für M1 und M2, keine Arbeit in M0.
+
+---
+
+## 6. Entscheidungen (Rico, 03.10.2026)
+
+Der Plan ist freigegeben. Jeder Schritt wird einzeln freigegeben, nach jedem Schritt: Commit und Stopp. Bei Unklarheiten innerhalb eines Schritts wird gefragt, nicht entschieden.
+
+| # | Entscheidung |
+|---|---|
+| F1 | Alle zehn fehlenden Linkziele ehrlich melden, keine Stub-Concepts. Abnahme: Die gepflanzte Lücke ist unter den Befunden, und kein gemeldeter Befund ist erfunden |
+| F2 | Orphan `regelungen/ki-einsatz` als echten Befund melden, keine Ausnahme für `draft` |
+| F3 | `last_verified` in der Zukunft wird in M0 nicht geprüft. `--stichtag` wird umgesetzt, Default heute |
+| F4 | Quellen nur auf Form prüfen. `archiv/` bleibt leer bis auf die Quelle für den Beispiel-PR. Personenregister nie |
+| F5 | „Quelle fehlt" bei G3 ist Validator-Fehler. „Abgelaufen" ist Lint-Befund. README: vorbereitet, nicht erzwungen |
+| F6 | Öffentlich, `loschke/kvix-kb`. Das Repo ist als öffentliches Schaufenster gedacht |
+| F7 | `yaml` statt gray-matter. Datumswerte überall Strings, nie `Date` |
+| F8 | Beispiel-PR: `orgeinheiten/kundenmanagement` |
+| F9 | `lebenszyklus` bei `system`: `aktiv`, `eingestellt` |
+| F10 | Unbekannte Frontmatter-Felder sind Warnung |
+| F11 | cron-Lauf mit `--issues`. Manueller Lauf per Schalter, Default ohne Issues |
+| F12 | Committen, Pushen und PRs öffnen frei. **Merges auf `main` macht ausschließlich Rico.** Den roten Test-PR darf Claude selbst schließen. CLAUDE.md-Platzhalter werden eingetragen |
+
+**Zu den Befunden:**
+
+- **B8** wird in M0 nur als GitHub-Issue festgehalten, nichts geändert. Die Korrektur kommt nach bestandener Abnahme als erster regulärer Gate-PR. Das Seed-Tabu gilt nur für die M0-Bauphase; danach sind Änderungen an den acht Concepts über den normalen PR-Weg mit Ricos Merge erwünscht.
+- **Pfad-Nebenbefund** (`../kvix-kb` in wissen-work): für M1 vorgemerkt, in M0 nichts tun.
+
+**Ergänzung für Schritt 6:** `docs/ABNAHME.md` enthält zusätzlich einen Nachweis zu F1 als prüfbare Checkliste: Link auf Lint-Report bzw. Issues, (a) `prozesse/systemzugang-beantragen` ist unter den Befunden, (b) jeder gemeldete Befund ist real, keiner erfunden.
+
+**Folge aus F12 für Schritt 6:** Den grünen Beispiel-PR öffne ich, gemerged wird er von Rico.
