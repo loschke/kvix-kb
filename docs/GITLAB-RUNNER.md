@@ -51,7 +51,9 @@ Im Service unter „Environment Variables": `RUNNER_TOKEN` mit dem kopierten Wer
 
 Geprüft am 03.10.2026: Die Compose-Datei ist syntaktisch gültig. Der Anmeldebefehl läuft mit Runner 19.4.1 gegen `vaults.sevenx.cloud` und wird mit einem Platzhalter-Token wie erwartet abgelehnt. Befehl und Adresse stimmen also.
 
-Nicht geprüft: die Anmeldung mit echtem Token und ein echter Job. Das zeigt erst Schritt 4 und danach die erste Pipeline.
+Angemeldet am 03.10.2026: GitLab führt den Runner als #1 `kvix-hetzner`, Instance, Version 19.4.1, Status „Online".
+
+Nicht geprüft: ein echter Job. Das zeigt erst die erste Pipeline.
 
 ## Sicherheit
 
