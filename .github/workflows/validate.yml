@@ -34,11 +34,16 @@ jobs:
       - name: Abhängigkeiten installieren
         run: npm ci
 
+      # Zuerst die Concepts: Das ist der Befund, den Redaktion und Agenten
+      # brauchen. Die folgenden Schritte laufen auch, wenn ein früherer
+      # scheitert, damit jeder PR alle Befunde auf einmal zeigt.
+      - name: Concepts validieren
+        run: npm run validate
+
       - name: Typprüfung
+        if: ${{ !cancelled() }}
         run: npm run typecheck
 
       - name: Tests
+        if: ${{ !cancelled() }}
         run: npm test
-
-      - name: Concepts validieren
-        run: npm run validate

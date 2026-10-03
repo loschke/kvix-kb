@@ -6,12 +6,17 @@ import type { GhRunner } from "../lib/issues.ts";
 import { main } from "../lint.ts";
 
 const ROOT = resolve(import.meta.dirname, "../..");
+// Eingefrorener Seed-Stand (Ausgangscommit). Der lebende Korpus im Repo-Root
+// ändert sich mit jedem Concept-PR und wird von "npm run validate" geprüft,
+// nicht von den Tests.
+const SEED = join(import.meta.dirname, "fixtures/seed");
+const SCHEMA = join(ROOT, "schema/taxonomie.yaml");
 
 function lauf(argv: string[], env: NodeJS.ProcessEnv = {}, gh?: GhRunner) {
   const out: string[] = [];
   const err: string[] = [];
   const report = join(mkdtempSync(join(tmpdir(), "kvix-lint-")), "lint-report.md");
-  const code = main(["--root", ROOT, "--report", report, ...argv], { out: (t) => out.push(t), err: (t) => err.push(t) }, env, gh);
+  const code = main(["--root", SEED, "--schema", SCHEMA, "--report", report, ...argv], { out: (t) => out.push(t), err: (t) => err.push(t) }, env, gh);
   return { code, out: out.join("\n"), err: err.join("\n"), report: () => readFileSync(report, "utf8") };
 }
 
