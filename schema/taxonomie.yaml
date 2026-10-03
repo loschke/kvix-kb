@@ -25,6 +25,11 @@
 #   leer_erlaubt       nur bei Listen: darf [] sein (Default: false)
 #   null_erlaubt_wenn  Feld darf null sein, wenn alle genannten Bedingungen
 #                      gelten, z. B. { status: [draft] }
+#   ziel_strenge       bei referenz, referenz_liste und Kanten mit "ziel":
+#                      wie ein falscher Zieltyp gemeldet wird.
+#                      fehler (Default) bricht die CI, warnung macht ihn
+#                      nur sichtbar. Erlaubt, eine Regel erst weich
+#                      einzuführen und später per Config zu verschärfen.
 
 version: 1
 
@@ -101,6 +106,11 @@ kanten:
   gilt_fuer:
     beschreibung: "Geltungsbereich einer Regelung"
     ziel: [rolle, orgeinheit]
+    # Weich eingeführt: In der Praxis sind auch Leistungen (Mandate),
+    # Systeme oder Prozesse als Geltungsbereich denkbar. Andere Ziele
+    # werden gewarnt, nicht abgelehnt. Nach Erfahrung entweder auf
+    # "fehler" stellen oder die Zieltypen erweitern.
+    ziel_strenge: warnung
   ersetzt:
     beschreibung: "Nachfolge; macht den Vorgänger auffindbar-veraltet"
   abhaengig_von:
@@ -237,17 +247,35 @@ typen:
 # ---------------------------------------------------------------------------
 # Signale: welche Werte für den Lint etwas bedeuten
 # ---------------------------------------------------------------------------
+#
+# Fälle und erwartetes Verhalten: docs/PLAN.md, Abschnitt 6 (Nachtrag
+# Signale). Jeder Fall ist durch einen Test abgesichert.
 signale:
-  # Ein Concept mit einem dieser Werte gilt als abgekündigt. Concepts, die
-  # per abhaengig_von darauf zeigen, bekommen den Befund Abhängigkeits-Flag.
+  # Lint-Befund "Abhängigkeits-Flag"
   abgekuendigt:
-    status: [archived]
-    lebenszyklus: [eingestellt]
-  # Ein Concept mit diesen Werten gilt als in Kraft. Liegt sein Feld
-  # "gueltigkeit_ende" vor dem Stichtag, ist es abgelaufen.
-  in_kraft:
-    status: [active]
-  gueltigkeit_ende: gueltig_bis
+    # Ein Concept gilt als abgekündigt, wenn eines dieser Felder einen der
+    # Werte hat. draft gilt bewusst NICHT als abgekündigt (Fall A4).
+    werte:
+      status: [archived]
+      lebenszyklus: [eingestellt]
+    # Nur über diese Kanten wird geflaggt. related_to und belongs_to
+    # geben nichts weiter (Fall A5).
+    propagiert_ueber: [abhaengig_von]
+    # Zeigt ein anderes Concept mit dieser Kante auf das abgekündigte,
+    # nennt der Befund es als Nachfolger (Fall A2).
+    nachfolger_kante: ersetzt
+
+  # Lint-Befund "Abgelaufen"
+  abgelaufen:
+    # Gilt für jeden Typ, der dieses Feld hat (im Prototyp nur regelung).
+    feld: gueltig_bis
+    # gueltig_bis ist der letzte gültige Tag; abgelaufen erst ab dem
+    # Folgetag (Fall B4).
+    letzter_tag_inklusiv: true
+    # Nur Concepts mit diesen Werten können ablaufen. archived und draft
+    # sind nicht betroffen (Fälle B2, B3).
+    nur_wenn:
+      status: [active]
 
 # ---------------------------------------------------------------------------
 # Raum-Profile: Gates und Prüf-Turnusse

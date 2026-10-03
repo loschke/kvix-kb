@@ -292,3 +292,28 @@ Der Plan ist freigegeben. Jeder Schritt wird einzeln freigegeben, nach jedem Sch
 **Folge aus F12 für Schritt 6:** Den grünen Beispiel-PR öffne ich, gemerged wird er von Rico.
 
 **Nachtrag 03.10.2026 (Rico):** Node 22 statt Node 20. Die Vorgabe Node 20 im Briefing war veraltet (Node 20 ist seit April 2026 ohne Pflege). Lokal läuft Node 22.13. Projekt und CI nutzen Node 22 (`engines: >=22.12.0`), dadurch ist vitest 5 möglich.
+
+**Nachtrag 03.10.2026 (Rico): offene Punkte zur Taxonomie**
+
+| Punkt | Entscheidung |
+|---|---|
+| Leere Listen | Erlaubt bei `quellen`, `synonyme`, `systeme`. Nicht erlaubt bei `beteiligte_rollen`, `aufgaben` |
+| `gilt_fuer` | Falscher Zieltyp ist **Warnung**, nicht Fehler (`ziel_strenge: warnung`). Später per Config verschärfbar oder Zieltypen erweiterbar. `owner` und die typisierten Referenzfelder bleiben streng |
+| `ersetzt` | Keine Typ-Prüfung. Eine Regelung darf z. B. durch einen Leitfaden abgelöst werden, der sie beschreibt oder enthält |
+| Block `signale` | Bleibt in der Taxonomie. Umsetzung nach den Fällen unten, je Fall ein Test |
+| `.npmrc` | Keine. Das Lockfile sichert Paketinhalte per Prüfsumme, die Registry ist dafür egal |
+
+**Signale, Fälle und Verhalten:**
+
+| Fall | Situation | Befund |
+|---|---|---|
+| A1 | Ziel einer `abhaengig_von`-Kante hat `lebenszyklus: eingestellt` (z. B. Ticketsystem abgelöst) | Abhängigkeits-Flag für jedes abhängige Concept |
+| A2 | Ziel hat `status: archived` und ein anderes Concept zeigt mit `ersetzt` darauf | Abhängigkeits-Flag mit Hinweis auf den Nachfolger |
+| A3 | Ziel hat `lebenszyklus: eingestellt`, aber `status: active` | Abhängigkeits-Flag |
+| A4 | Ziel ist `draft` | kein Befund |
+| A5 | Abgekündigtes Ziel nur über `related_to` oder `belongs_to` verbunden | kein Befund |
+| B1 | `gueltig_bis` vor dem Stichtag, `status: active` | Abgelaufen |
+| B2 | `gueltig_bis` vorbei, `status: archived` | kein Befund |
+| B3 | `gueltig_bis` vorbei, `status: draft` | kein Befund |
+| B4 | `gueltig_bis` gleich Stichtag | kein Befund (letzter gültiger Tag) |
+| B5 | `gueltig_ab` in der Zukunft, `status: active` | kein Befund |
