@@ -1,0 +1,1 @@
+Lies docs/BRIEFING.md vollständig. Führe zuerst die Vorab-Prüfung der beiden Bestandsbausteine aus der CLAUDE.md durch und lege mir dann den Bauplan als docs/PLAN.md vor: Schritte in Reihenfolge, was je Schritt entsteht, offene Fragen an mich. Noch nichts bauen.
