@@ -1,0 +1,303 @@
+# schema/taxonomie.yaml
+#
+# Einzige Quelle der Wahrheit für Validator (tools/validate.ts) und Lint
+# (tools/lint.ts). Typen, Felder, erlaubte Werte, Kanten, Gates und
+# Prüf-Turnusse stehen nur hier, nicht im Code. Ein anderer Mandant
+# ändert diese Datei, nicht die Werkzeuge.
+#
+# Grundlage: docs/BRIEFING.md, Abschnitt 2. Entscheidungen: docs/PLAN.md,
+# Abschnitt 6.
+#
+# Feldarten (Schlüssel "art"):
+#   typ            der Concept-Typ selbst; muss zum Ordner passen
+#   text           nicht-leerer String
+#   enum           einer der Werte unter "werte"
+#   datum          String im Format YYYY-MM-DD (nie als Datum geparst)
+#   referenz       ein Concept-Pfad; "ziel" begrenzt die erlaubten Zieltypen
+#   referenz_liste Liste von Concept-Pfaden; "ziel" wie bei referenz
+#   text_liste     Liste nicht-leerer Strings
+#   pfad_liste     Liste von Pfaden mit Präfix "praefix" (nur Form, keine
+#                  Existenzprüfung, siehe F4)
+#   kanten         Map Kantentyp -> Liste von Concept-Pfaden (siehe "kanten")
+#
+# Weitere Feldschlüssel:
+#   pflicht            Feld muss vorhanden sein
+#   leer_erlaubt       nur bei Listen: darf [] sein (Default: false)
+#   null_erlaubt_wenn  Feld darf null sein, wenn alle genannten Bedingungen
+#                      gelten, z. B. { status: [draft] }
+
+version: 1
+
+# ---------------------------------------------------------------------------
+# Ablage
+# ---------------------------------------------------------------------------
+ablage:
+  concept_endung: .md
+  # Keine Unterordner in Typ-Ordnern. Hierarchie lebt in belongs_to-Kanten.
+  typ_ordner_flach: true
+  # Rohquellen: keine Concepts, werden nicht validiert, nur referenziert.
+  archiv_praefix: archiv/
+
+# ---------------------------------------------------------------------------
+# Basis-Frontmatter: gilt für jedes Concept
+# ---------------------------------------------------------------------------
+basis_felder:
+  typ:
+    art: typ
+    pflicht: true
+  titel:
+    art: text
+    pflicht: true
+  authority:
+    art: enum
+    werte: [canonical, derived]
+    pflicht: true
+  owner:
+    # Rolle oder Orgeinheit, nie eine Person
+    art: referenz
+    ziel: [rolle, orgeinheit]
+    pflicht: true
+  visibility:
+    art: enum
+    werte: [public, internal, restricted]
+    pflicht: true
+  status:
+    art: enum
+    werte: [draft, active, archived]
+    pflicht: true
+  quellen:
+    art: pfad_liste
+    praefix: archiv/
+    pflicht: true
+    leer_erlaubt: true
+  links:
+    art: kanten
+    pflicht: true
+  last_verified:
+    art: datum
+    pflicht: true
+  volatilitaet:
+    # übersteuert den Prüf-Turnus des Typs, Faktoren im Profil
+    art: enum
+    werte: [hoch, niedrig]
+    pflicht: false
+
+# Bedingte Regeln über alle Typen. Jede Regel: wenn alle Bedingungen
+# gelten, muss "dann" erfüllt sein.
+regeln:
+  - id: derived-braucht-quelle
+    beschreibung: "authority: derived braucht mindestens eine Quelle"
+    wenn: { authority: [derived] }
+    dann: { mindestens_eins: quellen }
+
+# ---------------------------------------------------------------------------
+# Kanten: nur diese fünf sind zulässig
+# ---------------------------------------------------------------------------
+kanten:
+  belongs_to:
+    beschreibung: "Zugehörigkeit/Ownership, n:m erlaubt (Navigation, Hierarchie)"
+  related_to:
+    beschreibung: "Loser Kontext, reiner Retrieval-Hinweis, keine Propagation"
+  gilt_fuer:
+    beschreibung: "Geltungsbereich einer Regelung"
+    ziel: [rolle, orgeinheit]
+  ersetzt:
+    beschreibung: "Nachfolge; macht den Vorgänger auffindbar-veraltet"
+  abhaengig_von:
+    beschreibung: "Korrektheits-Abhängigkeit; Änderung oder Abkündigung des Ziels flaggt abhängige Concepts"
+
+# Kantentypen mit diesem Präfix sind Mandanten-Extensions und erlaubt
+# (im Prototyp nicht genutzt).
+kanten_extension_praefix: x_
+
+# ---------------------------------------------------------------------------
+# Typen: Ordner, typspezifische Pflichtfelder, Pflichtkanten
+# ---------------------------------------------------------------------------
+typen:
+  regelung:
+    ordner: regelungen
+    felder:
+      verbindlichkeit:
+        art: enum
+        werte: [verbindlich, empfehlung]
+        pflicht: true
+      gueltig_ab:
+        art: datum
+        pflicht: true
+        null_erlaubt_wenn: { status: [draft] }
+      gueltig_bis:
+        art: datum
+        pflicht: false
+    # realisiert das Pflichtfeld Geltungsbereich
+    kanten_pflicht: [gilt_fuer]
+
+  prozess:
+    ordner: prozesse
+    felder:
+      ausloeser:
+        art: text
+        pflicht: true
+      ergebnis:
+        art: text
+        pflicht: true
+      beteiligte_rollen:
+        art: referenz_liste
+        ziel: [rolle]
+        pflicht: true
+      systeme:
+        art: referenz_liste
+        ziel: [system]
+        pflicht: true
+        leer_erlaubt: true
+
+  leistung:
+    ordner: leistungen
+    felder:
+      zielgruppe:
+        art: text
+        pflicht: true
+      ansprechpartner:
+        art: referenz
+        ziel: [rolle]
+        pflicht: true
+      lebenszyklus:
+        art: enum
+        werte: [aktiv, eingestellt]
+        pflicht: true
+
+  leitfaden:
+    ordner: leitfaeden
+    felder:
+      zweck:
+        art: text
+        pflicht: true
+      vorbedingungen:
+        art: text
+        pflicht: true
+    kanten_pflicht: [abhaengig_von]
+
+  rolle:
+    ordner: rollen
+    felder:
+      aufgaben:
+        art: text_liste
+        pflicht: true
+      kontaktweg:
+        # Funktionspostfach, nie eine Person (nicht maschinell prüfbar,
+        # Regel steht in AGENTS.md)
+        art: text
+        pflicht: true
+      vertretung:
+        art: referenz
+        ziel: [rolle]
+        pflicht: true
+
+  orgeinheit:
+    ordner: orgeinheiten
+    felder:
+      auftrag:
+        art: text
+        pflicht: true
+      leitung:
+        art: referenz
+        ziel: [rolle]
+        pflicht: true
+
+  begriff:
+    ordner: begriffe
+    felder:
+      definition:
+        art: text
+        pflicht: true
+      synonyme:
+        art: text_liste
+        pflicht: true
+        leer_erlaubt: true
+
+  system:
+    ordner: systeme
+    felder:
+      zweck:
+        art: text
+        pflicht: true
+      zugang:
+        art: referenz
+        ziel: [prozess]
+        pflicht: true
+      betreiber:
+        art: referenz
+        ziel: [orgeinheit]
+        pflicht: true
+      lebenszyklus:
+        # Werte wie bei leistung (Entscheidung F9)
+        art: enum
+        werte: [aktiv, eingestellt]
+        pflicht: true
+
+# ---------------------------------------------------------------------------
+# Signale: welche Werte für den Lint etwas bedeuten
+# ---------------------------------------------------------------------------
+signale:
+  # Ein Concept mit einem dieser Werte gilt als abgekündigt. Concepts, die
+  # per abhaengig_von darauf zeigen, bekommen den Befund Abhängigkeits-Flag.
+  abgekuendigt:
+    status: [archived]
+    lebenszyklus: [eingestellt]
+  # Ein Concept mit diesen Werten gilt als in Kraft. Liegt sein Feld
+  # "gueltigkeit_ende" vor dem Stichtag, ist es abgelaufen.
+  in_kraft:
+    status: [active]
+  gueltigkeit_ende: gueltig_bis
+
+# ---------------------------------------------------------------------------
+# Raum-Profile: Gates und Prüf-Turnusse
+#
+# Der Core oben gilt für jeden Raum. Ein Profil legt nur fest, wie streng
+# geprüft und freigegeben wird. Ein späterer Projekt- oder Teamraum ist ein
+# weiterer Block unter "profile", kein Code.
+# ---------------------------------------------------------------------------
+aktives_profil: org-kb
+
+profile:
+  org-kb:
+    beschreibung: "Organisationsweite Wissensbasis (Kvix)"
+
+    gates:
+      G1:
+        beschreibung: "Sammel-PR möglich, ein Review"
+      G2:
+        beschreibung: "Einzel-PR, Owner-Freigabe"
+      G3:
+        beschreibung: "Einzel-PR, Owner und Vier-Augen"
+        # Vom Validator erzwungen (Entscheidung F5): Concept braucht
+        # mindestens eine Quelle.
+        quelle_pflicht: true
+        # Abgelaufene Gültigkeit blockiert im Prototyp nicht die CI, sondern
+        # ist ein Lint-Befund (Entscheidung F5). Vorbereitet, nicht erzwungen.
+
+    typ_gate:
+      regelung: G3
+      prozess: G2
+      leistung: G2
+      leitfaden: G1
+      rolle: G1
+      orgeinheit: G1
+      begriff: G1
+      system: G1
+
+    # Maximale Tage seit last_verified. null = kein Verfall.
+    # Überschreitung ist kein CI-Fehler, sondern Lint-Befund "Ungeprüft".
+    turnus_tage:
+      regelung: 90
+      prozess: 180
+      leistung: 180
+      leitfaden: 180
+      rolle: 365
+      orgeinheit: 365
+      begriff: null
+      system: 180
+
+    # Multiplikator auf den Turnus je volatilitaet-Wert
+    volatilitaet_faktor:
+      hoch: 0.5
+      niedrig: 2

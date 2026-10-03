@@ -1,0 +1,25 @@
+{
+  "name": "kvix-kb",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Prototyp der wissen.work-Wissensbasis am fiktiven Beispiel Kvix",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "validate": "tsx tools/validate.ts",
+    "lint": "tsx tools/lint.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "yaml": "^2.9.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11"
+  }
+}
