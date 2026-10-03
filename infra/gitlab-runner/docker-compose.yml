@@ -1,0 +1,39 @@
+# GitLab Runner für vaults.sevenx.cloud (Issue #17).
+#
+# Läuft als eigener Coolify-Service (Docker Compose) auf demselben Host wie
+# GitLab. Beim ersten Start meldet sich der Runner selbst an, danach liegt
+# die Anmeldung im Volume runner-config und überlebt Neustarts.
+#
+# Einzige Variable: RUNNER_TOKEN (glrt-…), in Coolify als Umgebungsvariable
+# gesetzt. Der Token steht nie im Repo. Anleitung: docs/GITLAB-RUNNER.md
+#
+# Achtung: Der Runner bekommt den Docker-Socket des Hosts. Wer Pipelines
+# auf dieser GitLab-Instanz ändern darf, kann damit auf den Host zugreifen.
+# Tragbar, solange die Registrierung zu ist und nur Rico Projekte anlegt.
+
+services:
+  runner:
+    image: gitlab/gitlab-runner:latest
+    restart: unless-stopped
+    environment:
+      - CI_SERVER_URL=https://vaults.sevenx.cloud
+      - CI_SERVER_TOKEN=${RUNNER_TOKEN:?RUNNER_TOKEN fehlt}
+    volumes:
+      - runner-config:/etc/gitlab-runner
+      - /var/run/docker.sock:/var/run/docker.sock
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        if ! grep -q 'token' /etc/gitlab-runner/config.toml 2>/dev/null; then
+          gitlab-runner register --non-interactive \
+            --name kvix-hetzner \
+            --executor docker \
+            --docker-image node:22 \
+            --docker-pull-policy if-not-present \
+            --clone-url https://vaults.sevenx.cloud
+        fi
+        exec gitlab-runner run --user=gitlab-runner --working-directory=/home/gitlab-runner
+
+volumes:
+  runner-config:
