@@ -1,0 +1,44 @@
+# Validierung bei jedem Pull Request und jedem Push auf main.
+#
+# Fehler (Schema-Verstöße) machen den Check rot. Warnungen, etwa fehlende
+# Linkziele, bleiben sichtbar (als Anmerkung an der Zeile), brechen aber
+# nichts. Der Job-Name "validate" ist der Pflicht-Check für main.
+
+name: Validierung
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Abhängigkeiten installieren
+        run: npm ci
+
+      - name: Typprüfung
+        run: npm run typecheck
+
+      - name: Tests
+        run: npm test
+
+      - name: Concepts validieren
+        run: npm run validate
