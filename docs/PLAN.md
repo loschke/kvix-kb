@@ -317,3 +317,10 @@ Der Plan ist freigegeben. Jeder Schritt wird einzeln freigegeben, nach jedem Sch
 | B3 | `gueltig_bis` vorbei, `status: draft` | kein Befund |
 | B4 | `gueltig_bis` gleich Stichtag | kein Befund (letzter gültiger Tag) |
 | B5 | `gueltig_ab` in der Zukunft, `status: active` | kein Befund |
+
+**Nachtrag 03.10.2026 (Rico): Lint-Issues**
+
+| Punkt | Entscheidung |
+|---|---|
+| Erster Lauf mit Issues | Gemeinsam von Hand in Schritt 6. Der wöchentliche Zeitplan in `lint.yml` ist bis dahin auskommentiert und wird nach der Abnahme wieder eingeschaltet |
+| Erledigte Issues | Werden nicht automatisch geschlossen. Der Lint nennt offene Lint-Issues ohne aktuellen Befund, das Schließen bleibt eine menschliche Entscheidung. Begründung: Kuratieren ist anfangs genau die Wissensarbeit, die Vertrauen ins System aufbaut |
