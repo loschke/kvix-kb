@@ -1,0 +1,25 @@
+# Zuständigkeit je Bereich (Gates vorbereitet, siehe README "Gates").
+#
+# Im Ein-Personen-Repo ist überall derselbe Owner eingetragen; das Ruleset
+# verlangt deshalb keine Code-Owner-Freigabe (man kann den eigenen PR nicht
+# selbst freigeben). Mit einem Team ersetzt man die Einträge je Typ-Ordner
+# durch die zuständige Gruppe und schaltet die Freigabe im Ruleset ein.
+
+*                @loschke
+
+# Schema: betrifft den ganzen Korpus
+/schema/         @loschke
+
+# G3: Owner plus Vier-Augen
+/regelungen/     @loschke
+
+# G2: Owner-Freigabe
+/prozesse/       @loschke
+/leistungen/     @loschke
+
+# G1: ein Review
+/leitfaeden/     @loschke
+/rollen/         @loschke
+/orgeinheiten/   @loschke
+/begriffe/       @loschke
+/systeme/        @loschke
