@@ -53,7 +53,7 @@ Geprüft am 03.10.2026: Die Compose-Datei ist syntaktisch gültig. Der Anmeldebe
 
 Angemeldet am 03.10.2026: GitLab führt den Runner als #1 `kvix-hetzner`, Instance, Version 19.4.1, Status „Online".
 
-Nicht geprüft: ein echter Job. Das zeigt erst die erste Pipeline.
+Erster Job am 04.10.2026: Pipeline #1 im Projekt `sevenx/kvix-demo-vault` (Branch `plattform/gitlab-ci`, Commit `6efc15a7`), Job `validate` grün nach 28 Sekunden. Klonen, `npm ci`, Validierung, Typprüfung und Tests laufen auf dem Runner.
 
 ## Sicherheit
 

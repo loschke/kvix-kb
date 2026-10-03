@@ -1,0 +1,33 @@
+# Validierung auf GitLab (Issue #17), Gegenstück zu
+# .github/workflows/validate.yml.
+#
+# Läuft bei jedem Merge Request, bei jedem Push auf den Standard-Branch und
+# beim manuellen Start. Fehler (Schema-Verstöße) machen die Pipeline rot.
+# Warnungen, etwa fehlende Linkziele, bleiben im Log sichtbar, brechen aber
+# nichts. Mit „Pipelines must succeed" sperrt eine rote Pipeline den Merge.
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "web"
+
+validate:
+  image: node:22
+  interruptible: true
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - .npm/
+  script:
+    - npm ci --cache .npm --prefer-offline
+    # Zuerst die Concepts: Das ist der Befund, den Redaktion und Agenten
+    # brauchen. Die folgenden Schritte laufen auch, wenn ein früherer
+    # scheitert, damit jeder Merge Request alle Befunde auf einmal zeigt.
+    - rc=0
+    - npm run validate || rc=1
+    - npm run typecheck || rc=1
+    - npm test || rc=1
+    - exit $rc
