@@ -290,3 +290,5 @@ Der Plan ist freigegeben. Jeder Schritt wird einzeln freigegeben, nach jedem Sch
 **Ergänzung für Schritt 6:** `docs/ABNAHME.md` enthält zusätzlich einen Nachweis zu F1 als prüfbare Checkliste: Link auf Lint-Report bzw. Issues, (a) `prozesse/systemzugang-beantragen` ist unter den Befunden, (b) jeder gemeldete Befund ist real, keiner erfunden.
 
 **Folge aus F12 für Schritt 6:** Den grünen Beispiel-PR öffne ich, gemerged wird er von Rico.
+
+**Nachtrag 03.10.2026 (Rico):** Node 22 statt Node 20. Die Vorgabe Node 20 im Briefing war veraltet (Node 20 ist seit April 2026 ohne Pflege). Lokal läuft Node 22.13. Projekt und CI nutzen Node 22 (`engines: >=22.12.0`), dadurch ist vitest 5 möglich.
