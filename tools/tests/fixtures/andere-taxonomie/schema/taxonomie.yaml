@@ -19,6 +19,8 @@ typen:
     felder:
       ziel: { art: text, pflicht: true }
 signale:
+  ungeprueft:
+    feld: geprueft_am
   abgekuendigt:
     werte: { phase: [beendet] }
     propagiert_ueber: [teil_von]

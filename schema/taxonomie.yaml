@@ -251,6 +251,13 @@ typen:
 # Fälle und erwartetes Verhalten: docs/PLAN.md, Abschnitt 6 (Nachtrag
 # Signale). Jeder Fall ist durch einen Test abgesichert.
 signale:
+  # Lint-Befund "Ungeprüft": Feld mit dem Datum der letzten Prüfung und
+  # Feld, dessen Wert den Turnus des Typs per volatilitaet_faktor im Profil
+  # übersteuert. Typen mit Turnus null sind ausgenommen.
+  ungeprueft:
+    feld: last_verified
+    volatilitaet_feld: volatilitaet
+
   # Lint-Befund "Abhängigkeits-Flag"
   abgekuendigt:
     # Ein Concept gilt als abgekündigt, wenn eines dieser Felder einen der

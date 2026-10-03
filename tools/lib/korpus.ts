@@ -46,6 +46,8 @@ export interface Concept {
   daten: Record<string, unknown>;
   body: string;
   ausgehend: Referenz[];
+  /** Dateizeile eines Frontmatter-Felds (1, wenn nicht vorhanden) */
+  zeile: (...pfad: (string | number)[]) => number;
 }
 
 export interface Korpus {

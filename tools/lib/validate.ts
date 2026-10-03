@@ -190,7 +190,7 @@ function pruefeDokument(dok: Dokument, schema: Schema): DokumentErgebnis {
     ausgehend.push({ von: id, ziel: w.ziel, quelle: "wikilink", name: "wikilink", zeile: w.zeile });
   }
 
-  return { befunde, id, concept: { id, datei: dok.datei, typ: ordnerTyp, daten, body: fm.frontmatter.body, ausgehend } };
+  return { befunde, id, concept: { id, datei: dok.datei, typ: ordnerTyp, daten, body: fm.frontmatter.body, ausgehend, zeile } };
 }
 
 type Melde = (zeile: number, ebene: Ebene, regel: string, text: string) => void;

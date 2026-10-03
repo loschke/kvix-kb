@@ -84,6 +84,10 @@ export interface Profil {
 }
 
 export interface Signale {
+  ungeprueft: {
+    feld: string;
+    volatilitaetFeld?: string;
+  };
   abgekuendigt: {
     werte: Bedingung;
     propagiertUeber: string[];
@@ -315,6 +319,13 @@ export function parseSchema(text: string): Schema {
   const s = istObjekt(roh.signale) ? roh.signale : (p.push("signale fehlt"), {} as Roh);
   const ab = istObjekt(s.abgekuendigt) ? s.abgekuendigt : (p.push("signale.abgekuendigt fehlt"), {} as Roh);
   const al = istObjekt(s.abgelaufen) ? s.abgelaufen : (p.push("signale.abgelaufen fehlt"), {} as Roh);
+  const ug = istObjekt(s.ungeprueft) ? s.ungeprueft : (p.push("signale.ungeprueft fehlt"), {} as Roh);
+  if (typeof ug.feld !== "string" || !alleFeldnamen.has(ug.feld)) {
+    p.push(`signale.ungeprueft.feld: unbekanntes Feld "${String(ug.feld)}"`);
+  }
+  if (ug.volatilitaet_feld !== undefined && (typeof ug.volatilitaet_feld !== "string" || !alleFeldnamen.has(ug.volatilitaet_feld))) {
+    p.push(`signale.ungeprueft.volatilitaet_feld: unbekanntes Feld "${String(ug.volatilitaet_feld)}"`);
+  }
   const propagiertUeber = istStringListe(ab.propagiert_ueber) ? ab.propagiert_ueber : [];
   for (const k of propagiertUeber) if (!kanten.has(k)) p.push(`signale.abgekuendigt.propagiert_ueber: unbekannte Kante "${k}"`);
   if (typeof ab.nachfolger_kante === "string" && !kanten.has(ab.nachfolger_kante)) {
@@ -324,6 +335,7 @@ export function parseSchema(text: string): Schema {
     p.push(`signale.abgelaufen.feld: unbekanntes Feld "${String(al.feld)}"`);
   }
   const signale: Signale = {
+    ungeprueft: { feld: typeof ug.feld === "string" ? ug.feld : "" },
     abgekuendigt: {
       werte: leseBedingung(ab.werte, "signale.abgekuendigt.werte"),
       propagiertUeber,
@@ -335,6 +347,7 @@ export function parseSchema(text: string): Schema {
     },
   };
   if (typeof ab.nachfolger_kante === "string") signale.abgekuendigt.nachfolgerKante = ab.nachfolger_kante;
+  if (typeof ug.volatilitaet_feld === "string") signale.ungeprueft.volatilitaetFeld = ug.volatilitaet_feld;
 
   // Profil
   const profil = leseProfil(roh, typNamen, p);
