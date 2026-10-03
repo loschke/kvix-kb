@@ -11,7 +11,7 @@ Ausgangsstand für alle Vergleiche: Commit [`9a22d99`](https://github.com/loschk
 - [x] **`validate.ts` läuft lokal und in CI grün auf dem Seed-Korpus, mit Warnung zur gepflanzten Lücke**
   - CI auf dem Seed-Stand: [Lauf 37120527746](https://github.com/loschke/kvix-kb/actions/runs/37120527746), Schritt „Concepts validieren“ grün
   - Ergebnis: 8 Concepts, 0 Fehler, 21 Warnungen zu 10 fehlenden Linkzielen, darunter `systeme/ticketsystem.md:9  WARNUNG  linkziel-fehlt  Feld zugang verweist auf prozesse/systemzugang-beantragen`
-  - Lokal: `npm run validate` (gleiches Ergebnis); als Dauertest gegen den eingefrorenen Seed-Stand in `tools/tests/validate.test.ts`
+  - Lokal nachvollziehbar gegen den eingefrorenen Seed-Stand: `npm run validate -- --root tools/tests/fixtures/seed --schema schema/taxonomie.yaml` (gleiches Ergebnis; auf `main` sind es seit PR #15 neun Concepts). Als Dauertest in `tools/tests/validate.test.ts`
 
 - [x] **Ein Test-PR mit absichtlichem Schema-Verstoß wird von der CI rot markiert**
   - [PR #2](https://github.com/loschke/kvix-kb/pull/2), [Lauf 37136540218](https://github.com/loschke/kvix-kb/actions/runs/37136540218): „Concepts validieren“ rot, Merge-Status `BLOCKED`

@@ -1,6 +1,6 @@
 # kvix-kb · Bauplan M0
 
-Stand 03.10.2026 · Grundlage: `docs/BRIEFING.md` · Status: **freigegeben am 03.10.2026, Entscheidungen siehe Abschnitt 6**
+Stand 03.10.2026 · Grundlage: `docs/BRIEFING.md` · Status: **abgeschlossen, Nachweise in `docs/ABNAHME.md`; Entscheidungen siehe Abschnitt 6**
 
 Dieser Plan hat vier Teile: die Vorab-Prüfung der zwei Bestandsbausteine, die Befunde am Seed-Korpus, die Bauschritte in Reihenfolge und die offenen Fragen. Die Fragen stehen am Ende, Ricos Entscheidungen dazu in Abschnitt 6. Wo Abschnitt 6 von den Schritten abweicht, gilt Abschnitt 6.
 

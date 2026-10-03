@@ -7,7 +7,8 @@ Bauplan und Entscheidungen: docs/PLAN.md. Regeln für Concept-Änderungen: AGENT
 - Deutsch in Commits, Doku, Issues
 - Plan vor Umsetzung, kleine Commits, bei Unklarheit fragen statt raten
 - Die gepflanzte Lücke (prozesse/systemzugang-beantragen) niemals reparieren
-- Die 8 Seed-Concepts nicht verändern; Befunde melden statt fixen
+- Seed-Concepts: Änderungen nur per PR mit Ricos Merge. Das Seed-Tabu galt bis zur M0-Abnahme (docs/ABNAHME.md)
+- Nie direkt auf main, nie selbst mergen; Lint-Issues schließt Rico
 
 ## Bestandsbausteine für die Vorab-Prüfung (read-only)
 - build.jetzt-Projekt (Mastra, vereinfachtes Wissensmanagement): `C:\Users\losch\Projekte\loschke-hub\build-jetzt-superagents`
