@@ -7,6 +7,8 @@ export interface LinkBasis {
   repoUrl: string;
   /** Commit-SHA oder Branch, auf den die Links zeigen */
   ref: string;
+  /** Pfadteil vor dem Ref. GitHub: blob (Default), GitLab: -/blob */
+  blobPfad?: string;
 }
 
 export interface ReportKontext {
@@ -21,7 +23,7 @@ const REIHENFOLGE: BefundArt[] = ["fehlendes-linkziel", "abgelaufen", "abhaengig
 
 export function fundstelleAlsLink(f: Fundstelle, basis?: LinkBasis): string {
   const text = `${f.datei}:${f.zeile}`;
-  const ziel = basis ? `${basis.repoUrl}/blob/${basis.ref}/${f.datei}#L${f.zeile}` : `${f.datei}#L${f.zeile}`;
+  const ziel = basis ? `${basis.repoUrl}/${basis.blobPfad ?? "blob"}/${basis.ref}/${f.datei}#L${f.zeile}` : `${f.datei}#L${f.zeile}`;
   return `[${text}](${ziel}) (${f.ort})`;
 }
 

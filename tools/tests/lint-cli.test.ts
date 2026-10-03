@@ -34,6 +34,19 @@ describe("lint CLI", () => {
     expect(r.report()).toContain("(https://github.com/loschke/kvix-kb/blob/abc123/systeme/ticketsystem.md#L9)");
   });
 
+  it("verlinkt in GitLab CI auf den geprüften Commit", () => {
+    const env = { GITLAB_CI: "true", CI_PROJECT_URL: "https://vaults.sevenx.cloud/sevenx/kvix-demo-vault", CI_COMMIT_SHA: "abc123" };
+    const r = lauf(["--stichtag", "2026-10-03"], env);
+    expect(r.report()).toContain("(https://vaults.sevenx.cloud/sevenx/kvix-demo-vault/-/blob/abc123/systeme/ticketsystem.md#L9)");
+  });
+
+  it("Exit 1 in GitLab CI, wenn LINT_TOKEN fehlt", () => {
+    const env = { GITLAB_CI: "true", CI_API_V4_URL: "https://vaults.sevenx.cloud/api/v4", CI_PROJECT_ID: "1" };
+    const r = lauf(["--stichtag", "2026-10-03", "--issues"], env);
+    expect(r.code).toBe(1);
+    expect(r.err).toContain("LINT_TOKEN fehlt");
+  });
+
   it("Exit 2 bei ungültigem Stichtag", () => {
     expect(lauf(["--stichtag", "03.10.2026"]).code).toBe(2);
   });
