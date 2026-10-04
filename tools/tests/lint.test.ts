@@ -1,9 +1,9 @@
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { stringify } from "yaml";
-import { planeIssues, syncIssues, type GhRunner } from "../lib/issues.ts";
+import { gitlabTicketsystem, planeIssues, syncIssues, type GhRunner, type GitlabApi } from "../lib/issues.ts";
 import { ladeDokumente, type Dokument } from "../lib/korpus.ts";
-import { lintReportMarkdown } from "../lib/lint-report.ts";
+import { fundstelleAlsLink, lintReportMarkdown } from "../lib/lint-report.ts";
 import { lintKorpus, type BefundArt, type LintBefund } from "../lib/lint.ts";
 import { ladeSchema } from "../lib/schema.ts";
 import { validateKorpus } from "../lib/validate.ts";
@@ -269,5 +269,100 @@ describe("Issues", () => {
     const r = syncIssues([befund("a/x")], gh, { stichtag: STICHTAG, trockenlauf: true });
     expect(r.anlegen).toHaveLength(1);
     expect(aufrufe).toHaveLength(1);
+  });
+
+  describe("GitLab", () => {
+    type Aufruf = { methode: string; pfad: string; body?: Record<string, unknown> };
+
+    /** Kleines GitLab im Speicher: Issues und Labels eines Projekts */
+    function gitlab(start: { iid: number; title: string }[] = []) {
+      const issues = [...start];
+      const labels = new Set<string>();
+      const aufrufe: Aufruf[] = [];
+      const api: GitlabApi = (methode, pfad, body) => {
+        aufrufe.push(body ? { methode, pfad, body } : { methode, pfad });
+        if (methode === "GET" && pfad.startsWith("/projects/42/issues?")) {
+          const q = new URLSearchParams(pfad.split("?")[1]);
+          expect(q.get("state")).toBe("opened");
+          const proSeite = Number(q.get("per_page"));
+          const ab = (Number(q.get("page")) - 1) * proSeite;
+          return { status: 200, body: JSON.stringify(issues.slice(ab, ab + proSeite)) };
+        }
+        if (methode === "POST" && pfad === "/projects/42/labels") {
+          const name = body!.name as string;
+          if (labels.has(name)) return { status: 409, body: '{"message":"Label already exists"}' };
+          labels.add(name);
+          return { status: 201, body: "{}" };
+        }
+        if (methode === "PUT" && pfad.startsWith("/projects/42/labels/")) return { status: 200, body: "{}" };
+        if (methode === "POST" && pfad === "/projects/42/issues") {
+          const iid = issues.length + 1;
+          issues.push({ iid, title: body!.title as string });
+          return { status: 201, body: JSON.stringify({ iid, web_url: `https://gitlab.example/x/y/-/issues/${iid}` }) };
+        }
+        return { status: 404, body: '{"message":"404 Not Found"}' };
+      };
+      return { api, aufrufe, issues };
+    }
+
+    it("legt Labels und Issues über die API an; zweiter Lauf legt nichts doppelt an", () => {
+      const g = gitlab();
+      const ts = gitlabTicketsystem(g.api, "42");
+      const erster = syncIssues([befund("a/x"), befund("a/y")], ts, { stichtag: STICHTAG, trockenlauf: false });
+      expect(erster.angelegt.map((a) => a.url)).toEqual(["https://gitlab.example/x/y/-/issues/1", "https://gitlab.example/x/y/-/issues/2"]);
+
+      const label = g.aufrufe.find((a) => a.pfad === "/projects/42/labels" && a.body?.name === "lint:fehlendes-linkziel")!;
+      expect(label.body).toMatchObject({ color: "#D93F0B" });
+      const create = g.aufrufe.find((a) => a.methode === "POST" && a.pfad === "/projects/42/issues")!;
+      expect(create.body).toMatchObject({ title: "Lint: Fehlendes Linkziel a/x", labels: "lint,lint:fehlendes-linkziel" });
+      expect(create.body!.description).toContain("**Betroffen:**");
+
+      const zweiter = syncIssues([befund("a/x"), befund("a/y")], ts, { stichtag: STICHTAG, trockenlauf: false });
+      expect(zweiter.angelegt).toEqual([]);
+      expect(zweiter.vorhanden.map((v) => v.nummer)).toEqual([1, 2]);
+    });
+
+    it("bringt ein vorhandenes Label auf den Stand statt zu scheitern (409)", () => {
+      const g = gitlab();
+      const ts = gitlabTicketsystem(g.api, "42");
+      syncIssues([befund("a/x")], ts, { stichtag: STICHTAG, trockenlauf: false });
+      syncIssues([befund("a/x"), befund("a/y")], ts, { stichtag: STICHTAG, trockenlauf: false });
+      const put = g.aufrufe.filter((a) => a.methode === "PUT").map((a) => a.pfad);
+      expect(put).toEqual(["/projects/42/labels/lint", "/projects/42/labels/lint%3Afehlendes-linkziel"]);
+    });
+
+    it("liest alle Seiten der offenen Issues", () => {
+      const viele = Array.from({ length: 150 }, (_, i) => ({ iid: i + 1, title: `Etwas ${i + 1}` }));
+      viele[149] = { iid: 150, title: "Lint: Fehlendes Linkziel a/x" };
+      const g = gitlab(viele);
+      const r = syncIssues([befund("a/x")], gitlabTicketsystem(g.api, "42"), { stichtag: STICHTAG, trockenlauf: false });
+      expect(r.anlegen).toEqual([]);
+      expect(r.vorhanden.map((v) => v.nummer)).toEqual([150]);
+      expect(g.aufrufe.filter((a) => a.methode === "GET")).toHaveLength(2);
+    });
+
+    it("Trockenlauf liest nur", () => {
+      const g = gitlab();
+      const r = syncIssues([befund("a/x")], gitlabTicketsystem(g.api, "42"), { stichtag: STICHTAG, trockenlauf: true });
+      expect(r.anlegen).toHaveLength(1);
+      expect(g.aufrufe.every((a) => a.methode === "GET")).toBe(true);
+    });
+
+    it("meldet API-Fehler mit Status", () => {
+      const api: GitlabApi = () => ({ status: 401, body: '{"message":"401 Unauthorized"}' });
+      expect(() => syncIssues([befund("a/x")], gitlabTicketsystem(api, "42"), { stichtag: STICHTAG, trockenlauf: false })).toThrow(/401/);
+    });
+  });
+});
+
+describe("Links je Plattform", () => {
+  const f = { datei: "systeme/ticketsystem.md", zeile: 9, ort: "Feld zugang" };
+
+  it("GitHub: /blob/<ref>/", () => {
+    expect(fundstelleAlsLink(f, { repoUrl: "https://github.com/x/y", ref: "abc" })).toContain("(https://github.com/x/y/blob/abc/systeme/ticketsystem.md#L9)");
+  });
+
+  it("GitLab: /-/blob/<ref>/", () => {
+    expect(fundstelleAlsLink(f, { repoUrl: "https://gitlab.example/x/y", ref: "abc", blobPfad: "-/blob" })).toContain("(https://gitlab.example/x/y/-/blob/abc/systeme/ticketsystem.md#L9)");
   });
 });

@@ -1,28 +1,46 @@
-# Validierung auf GitLab (Issue #17), Gegenstück zu
-# .github/workflows/validate.yml.
+# CI auf GitLab (Issue #17), Gegenstück zu .github/workflows/.
 #
-# Läuft bei jedem Merge Request, bei jedem Push auf den Standard-Branch und
-# beim manuellen Start. Fehler (Schema-Verstöße) machen die Pipeline rot.
-# Warnungen, etwa fehlende Linkziele, bleiben im Log sichtbar, brechen aber
-# nichts. Mit „Pipelines must succeed" sperrt eine rote Pipeline den Merge.
+# validate: bei jedem Merge Request, bei jedem Push auf den Standard-Branch
+#   und beim manuellen Start. Fehler (Schema-Verstöße) machen die Pipeline
+#   rot. Warnungen, etwa fehlende Linkziele, bleiben im Log sichtbar, brechen
+#   aber nichts. Mit „Pipelines must succeed" sperrt eine rote Pipeline den
+#   Merge.
+#
+# lint: per Zeitplan (Build → Pipeline schedules) und beim manuellen Start.
+#   Befunde sind keine Fehler, der Job bleibt grün. Der Report liegt als
+#   Artefakt am Job. Der Zeitplan legt je Befund ein Issue an, ohne
+#   Duplikate. Beim manuellen Start nur mit LINT_ISSUES=true.
+#   Braucht die CI-Variable LINT_TOKEN (Projekt-Zugangstoken, Scope api,
+#   maskiert). Das Job-Token darf keine Issues anlegen.
 
 workflow:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "schedule"
     - if: $CI_PIPELINE_SOURCE == "web"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
-validate:
+variables:
+  LINT_ISSUES:
+    value: "false"
+    description: "Lint: je Befund ein Issue anlegen (ohne Duplikate). true oder false."
+
+default:
   image: node:22
-  interruptible: true
   cache:
     key:
       files:
         - package-lock.json
     paths:
       - .npm/
-  script:
+  before_script:
     - npm ci --cache .npm --prefer-offline
+
+validate:
+  interruptible: true
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "schedule"
+  script:
     # Zuerst die Concepts: Das ist der Befund, den Redaktion und Agenten
     # brauchen. Die folgenden Schritte laufen auch, wenn ein früherer
     # scheitert, damit jeder Merge Request alle Befunde auf einmal zeigt.
@@ -31,3 +49,16 @@ validate:
     - npm run typecheck || rc=1
     - npm test || rc=1
     - exit $rc
+
+lint:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      variables:
+        LINT_ISSUES: "true"
+    - if: $CI_PIPELINE_SOURCE == "web"
+  script:
+    - if [ "$LINT_ISSUES" = "true" ]; then npm run lint -- --issues; else npm run lint; fi
+  artifacts:
+    when: always
+    paths:
+      - lint-report.md

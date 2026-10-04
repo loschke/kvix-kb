@@ -2,8 +2,12 @@
 //
 //   npm run lint                               Report nach lint-report.md
 //   npm run lint -- --stichtag 2026-12-31      anderer Stichtag (Default: heute)
-//   npm run lint -- --issues                   zusätzlich GitHub-Issues anlegen
+//   npm run lint -- --issues                   zusätzlich Issues anlegen (GitHub oder GitLab)
 //   npm run lint -- --issues --trockenlauf     nur zeigen, was angelegt würde
+//
+// Die Plattform ergibt sich aus der CI-Umgebung (GITHUB_ACTIONS bzw.
+// GITLAB_CI). Lokal und in GitHub Actions gehen Issues über die gh-CLI, in
+// GitLab CI über die REST-API mit dem Token aus LINT_TOKEN.
 //
 // Exit-Codes: 0 = Lauf durchgeführt (Befunde sind keine Fehler),
 //             1 = Issues konnten nicht angelegt werden,
@@ -12,7 +16,7 @@
 import { writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { ghCli, syncIssues, type GhRunner } from "./lib/issues.ts";
+import { githubTicketsystem, gitlabHttp, gitlabTicketsystem, syncIssues, type GhRunner, type Ticketsystem } from "./lib/issues.ts";
 import { ladeDokumente } from "./lib/korpus.ts";
 import { lintReportMarkdown, type LinkBasis, type ReportKontext } from "./lib/lint-report.ts";
 import { BEFUND_ARTEN, heute, lintKorpus } from "./lib/lint.ts";
@@ -30,7 +34,7 @@ const HILFE = `Aufruf: npm run lint -- [Optionen]
   --stichtag <YYYY-MM-DD>  Bezugsdatum für Turnus und Gültigkeit (Default: heute)
   --report <datei>         Report-Datei (Default: lint-report.md)
   --json                   Befunde zusätzlich als JSON auf stdout
-  --issues                 je Befund ein GitHub-Issue anlegen (ohne Duplikate)
+  --issues                 je Befund ein Issue anlegen (ohne Duplikate)
   --trockenlauf            mit --issues: nur zeigen, was angelegt würde
   --root <dir>             Wurzel des Korpus (Default: aktuelles Verzeichnis)
   --schema <datei>         Taxonomie (Default: <root>/schema/taxonomie.yaml)`;
@@ -39,7 +43,7 @@ export function main(
   argv: string[],
   aus: Ausgabe = konsole,
   env: NodeJS.ProcessEnv = process.env,
-  gh: GhRunner = ghCli,
+  system?: Ticketsystem | GhRunner,
 ): number {
   let root = process.cwd();
   let schemaPfad: string | undefined;
@@ -110,7 +114,7 @@ export function main(
   try {
     const opt: { stichtag: string; trockenlauf: boolean; linkBasis?: LinkBasis } = { stichtag, trockenlauf };
     if (linkBasis) opt.linkBasis = linkBasis;
-    const r = syncIssues(befunde, gh, opt);
+    const r = syncIssues(befunde, system ?? ticketsystemAusEnv(env), opt);
     const log = json ? aus.err : aus.out;
     log(`\nIssues${trockenlauf ? " (Trockenlauf)" : ""}: ${r.anlegen.length} neu, ${r.vorhanden.length} bereits offen`);
     for (const b of r.anlegen) {
@@ -126,11 +130,27 @@ export function main(
   }
 }
 
-/** In GitHub Actions zeigen Links im Report auf den geprüften Commit. */
+/** In der CI zeigen Links im Report auf den geprüften Commit. */
 function linkBasisAusEnv(env: NodeJS.ProcessEnv): LinkBasis | undefined {
+  if (env.GITLAB_CI === "true") {
+    const { CI_PROJECT_URL: projekt, CI_COMMIT_SHA: sha } = env;
+    if (projekt && sha) return { repoUrl: projekt, ref: sha, blobPfad: "-/blob" };
+    return undefined;
+  }
   const { GITHUB_SERVER_URL: server, GITHUB_REPOSITORY: repo, GITHUB_SHA: sha } = env;
   if (server && repo && sha) return { repoUrl: `${server}/${repo}`, ref: sha };
   return undefined;
+}
+
+/** GitLab CI: REST-API mit LINT_TOKEN. Sonst (GitHub Actions, lokal): gh-CLI. */
+function ticketsystemAusEnv(env: NodeJS.ProcessEnv): Ticketsystem {
+  if (env.GITLAB_CI !== "true") return githubTicketsystem();
+  const { CI_API_V4_URL: api, CI_PROJECT_ID: projekt, LINT_TOKEN: token } = env;
+  if (!api || !projekt) throw new Error("CI_API_V4_URL oder CI_PROJECT_ID fehlt");
+  if (!token) {
+    throw new Error("CI-Variable LINT_TOKEN fehlt (Projekt-Zugangstoken mit Scope api; das Job-Token darf keine Issues anlegen)");
+  }
+  return gitlabTicketsystem(gitlabHttp(api, token), projekt);
 }
 
 const konsole: Ausgabe = {

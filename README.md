@@ -73,11 +73,13 @@ Auf dem Seed-Korpus endet die Validierung mit 0 Fehlern und Warnungen zu zehn fe
 | Abgelaufen | `lint:abgelaufen` | `gueltig_bis` liegt vor dem Stichtag, `status` ist noch `active` |
 | Abhängigkeit prüfen | `lint:abhaengigkeit` | Ein Ziel von `abhaengig_von` ist archiviert oder eingestellt; ein Nachfolger über `ersetzt` wird genannt |
 
-Befunde sind keine CI-Fehler. Der Lauf schreibt `lint-report.md` (in Actions als Artefakt und auf der Seite des Laufs). Mit `--issues` legt er je Befund ein GitHub-Issue an, mit Label `lint` und dem Label der Befundart. Vor dem Anlegen prüft er offene Issues mit gleichem Titel, ein zweiter Lauf erzeugt keine Duplikate.
+Befunde sind keine CI-Fehler. Der Lauf schreibt `lint-report.md` (in Actions als Artefakt und auf der Seite des Laufs). Mit `--issues` legt er je Befund ein Issue an, mit Label `lint` und dem Label der Befundart. Vor dem Anlegen prüft er offene Issues mit gleichem Titel, ein zweiter Lauf erzeugt keine Duplikate.
 
 **Erledigte Befunde schließt ein Mensch.** Der Lint nennt offene Lint-Issues ohne aktuellen Befund, schließt sie aber nicht. Kuratieren ist am Anfang genau die Arbeit, die Vertrauen ins System aufbaut.
 
 Der Workflow `lint.yml` läuft jeden Montag um 06:00 UTC und legt dabei Issues an. Von Hand startest du ihn unter Actions → Lint → Run workflow, dort mit dem Schalter für Issues (Default aus).
+
+**Zwei Plattformen, ein Kern.** Der Lint kennt nur eine Schnittstelle „Ticketsystem" (`tools/lib/issues.ts`) mit Treibern für GitHub und GitLab. Welche Plattform gilt, liest er aus der CI-Umgebung (`GITHUB_ACTIONS` bzw. `GITLAB_CI`). Lokal und in GitHub Actions gehen Issues über die `gh`-CLI. In GitLab CI gehen sie über die REST-API, dafür braucht das Projekt die maskierte CI-Variable `LINT_TOKEN` (Projekt-Zugangstoken mit Scope `api`). Auf GitLab läuft der Lint als Job `lint` in `.gitlab-ci.yml`: per Zeitplan mit Issues, von Hand unter Build → Pipelines → New pipeline, dort mit der Variable `LINT_ISSUES=true`.
 
 ## Stand
 
